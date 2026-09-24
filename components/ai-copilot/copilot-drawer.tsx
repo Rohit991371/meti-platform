@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COPILOT_SUGGESTED_PROMPTS, COPILOT_RESPONSES, DEFAULT_COPILOT_REPLY } from "@/lib/mock-data";
+import { COPILOT_SUGGESTED_PROMPTS, DEFAULT_COPILOT_REPLY } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 type Message = { role: "user" | "assistant"; text: string };
@@ -19,11 +19,21 @@ export function CopilotDrawer() {
     },
   ]);
 
-  function send(text: string) {
+  async function send(text: string) {
     if (!text.trim()) return;
-    const reply = COPILOT_RESPONSES[text.trim().toLowerCase()] ?? DEFAULT_COPILOT_REPLY;
-    setMessages((prev) => [...prev, { role: "user", text }, { role: "assistant", text: reply }]);
+    setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
+    try {
+      const res = await fetch("/api/copilot/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId: "rohit-1", userQuestion: text }),
+      });
+      const data = await res.json();
+      setMessages((prev) => [...prev, { role: "assistant", text: data.reply || DEFAULT_COPILOT_REPLY }]);
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", text: DEFAULT_COPILOT_REPLY }]);
+    }
   }
 
   return (

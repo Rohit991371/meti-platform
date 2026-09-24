@@ -5,17 +5,29 @@ import { UploadCloud, FileCheck2, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export function ResumeUpload({ onExtracted }: { onExtracted: () => void }) {
+export function ResumeUpload({ onExtracted }: { onExtracted: (data?: any) => void }) {
   const [status, setStatus] = useState<"idle" | "parsing" | "done">("idle");
   const [dragOver, setDragOver] = useState(false);
 
-  function simulateUpload() {
+  async function simulateUpload() {
     if (status !== "idle") return;
     setStatus("parsing");
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/onboarding/parse-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText:
+            "Rohit Gupta, MBA IIM. 6 years experience at Deloitte and EY in Strategy & Business Transformation and Enterprise AI Advisory.",
+        }),
+      });
+      const data = await res.json();
+      setStatus("done");
+      onExtracted(data);
+    } catch {
       setStatus("done");
       onExtracted();
-    }, 1400);
+    }
   }
 
   return (
