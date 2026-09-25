@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CANDIDATE } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const PRACTICE_AREAS = [
   "Strategy & Business Transformation",
@@ -29,12 +29,21 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-export function ProfileForm({ visible, onContinue }: { visible: boolean; onContinue: () => void }) {
+export function ProfileForm({
+  visible,
+  onContinue,
+  extractedData,
+}: {
+  visible: boolean;
+  onContinue: () => void;
+  extractedData?: any;
+}) {
   const [selectedAreas, setSelectedAreas] = useState<string[]>(CANDIDATE.practiceAreas);
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -45,6 +54,20 @@ export function ProfileForm({ visible, onContinue }: { visible: boolean; onConti
       email: CANDIDATE.email,
     },
   });
+
+  useEffect(() => {
+    if (extractedData) {
+      reset({
+        fullName: extractedData.fullName || CANDIDATE.fullName,
+        education: extractedData.education || CANDIDATE.education,
+        yearsExperience: extractedData.experienceYears ?? CANDIDATE.yearsExperience,
+        email: CANDIDATE.email,
+      });
+      if (Array.isArray(extractedData.practiceAreas) && extractedData.practiceAreas.length) {
+        setSelectedAreas(extractedData.practiceAreas);
+      }
+    }
+  }, [extractedData, reset]);
 
   function toggleArea(area: string) {
     setSelectedAreas((prev) =>
