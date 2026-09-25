@@ -1,10 +1,45 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OVERRIDE_LOG } from "@/lib/mock-data";
 
+type ApiRow = {
+  id: string;
+  candidate_id: string;
+  competency_code: string;
+  old_score: number;
+  new_score: number;
+  reviewer_name: string;
+  reason: string;
+  timestamp: string;
+};
+
 export function OverrideLog() {
+  const [rows, setRows] = useState<ApiRow[] | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/overrides")
+      .then((res) => res.json())
+      .then((data) => setRows(data.overrides ?? []))
+      .catch(() => setRows(null));
+  }, []);
+
+  const entries =
+    rows && rows.length > 0
+      ? rows.map((r) => ({
+          id: r.id,
+          candidate: r.candidate_id,
+          competency: r.competency_code,
+          aiScore: r.old_score,
+          humanScore: r.new_score,
+          reviewer: r.reviewer_name,
+          reason: r.reason,
+          date: new Date(r.timestamp).toLocaleDateString(),
+        }))
+      : OVERRIDE_LOG;
+
   return (
     <Card>
       <CardHeader>
@@ -26,7 +61,7 @@ export function OverrideLog() {
               </tr>
             </thead>
             <tbody>
-              {OVERRIDE_LOG.map((entry) => {
+              {entries.map((entry) => {
                 const changed = entry.aiScore !== entry.humanScore;
                 return (
                   <tr key={entry.id} className="border-b border-meti-slate/10 last:border-0 align-top">

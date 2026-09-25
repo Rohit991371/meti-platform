@@ -12,6 +12,7 @@ import type { ScreenId } from "@/lib/types";
 export function OnboardingScreen({ onNavigate }: { onNavigate: (screen: ScreenId) => void }) {
   const [authed, setAuthed] = useState(false);
   const [extracted, setExtracted] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 md:py-20">
@@ -44,8 +45,13 @@ export function OnboardingScreen({ onNavigate }: { onNavigate: (screen: ScreenId
 
       {authed && (
         <div className="space-y-6">
-          <ResumeUpload onExtracted={() => setExtracted(true)} />
-          <ProfileForm visible={extracted} onContinue={() => onNavigate("catalogue")} />
+          <ResumeUpload
+            onExtracted={(data) => {
+              setExtracted(true);
+              setExtractedData(data);
+            }}
+          />
+          <ProfileForm visible={extracted} onContinue={() => onNavigate("catalogue")} extractedData={extractedData} />
         </div>
       )}
     </div>
