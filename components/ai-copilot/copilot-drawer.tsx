@@ -27,7 +27,7 @@ export function CopilotDrawer() {
       const res = await fetch("/api/copilot/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ candidateId: "rohit-1", userQuestion: text }),
+        body: JSON.stringify({ candidateId: "candidate-rohit-123", userQuestion: text }),
       });
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", text: data.reply || DEFAULT_COPILOT_REPLY }]);

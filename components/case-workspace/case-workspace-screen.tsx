@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight, FolderKanban } from "lucide-react";
+import { useCallback, useState } from "react";
+import { ArrowRight, FolderKanban, Loader2 } from "lucide-react";
 import { CaseExhibits } from "./case-exhibits";
 import { ResponseTabs } from "./response-tabs";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,35 @@ import { Badge } from "@/components/ui/badge";
 import type { ScreenId } from "@/lib/types";
 
 export function CaseWorkspaceScreen({ onNavigate }: { onNavigate: (screen: ScreenId) => void }) {
+  const [caseData, setCaseData] = useState<{ issues: string[]; memoText: string; aiMode: "closed" | "assisted" } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleChange = useCallback(
+    (data: { issues: string[]; memoText: string; aiMode: "closed" | "assisted" }) => setCaseData(data),
+    []
+  );
+
+  async function submitCase() {
+    setSubmitting(true);
+    try {
+      await fetch("/api/case/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidateId: "candidate-rohit-123",
+          issueTreeJson: caseData?.issues ?? [],
+          memoText: caseData?.memoText ?? "",
+          aiMode: caseData?.aiMode === "assisted" ? "AI_ASSISTED" : "CLOSED_AI",
+        }),
+      });
+    } catch {
+      // Zero-crash: proceed to dashboard even if scoring API is unreachable.
+    } finally {
+      setSubmitting(false);
+      onNavigate("dashboard");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#fafffd]">
       <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-meti-cream px-4 sm:px-6 py-3.5">
@@ -26,14 +56,22 @@ export function CaseWorkspaceScreen({ onNavigate }: { onNavigate: (screen: Scree
             <CaseExhibits />
           </div>
           <div>
-            <ResponseTabs />
+            <ResponseTabs onChange={handleChange} />
           </div>
         </div>
 
         <div className="mt-8 flex justify-end">
-          <Button size="lg" onClick={() => onNavigate("dashboard")} className="gap-1.5">
-            Submit case & view report
-            <ArrowRight className="h-4 w-4" />
+          <Button size="lg" onClick={submitCase} disabled={submitting} className="gap-1.5">
+            {submitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Scoring submission…
+              </>
+            ) : (
+              <>
+                Submit case & view report
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>

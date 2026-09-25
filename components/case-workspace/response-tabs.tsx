@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, UploadCloud, Lock, Sparkles, FileText } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,13 +9,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export function ResponseTabs() {
+const DEFAULT_MEMO =
+  "Recommend a three-lever plan: (1) consolidate South-region fulfilment nodes, (2) renegotiate carrier contracts against 2026 volume tiers, (3) pilot a 12-week phased rollout before full network change to protect SLA commitments.";
+
+export function ResponseTabs({
+  onChange,
+}: {
+  onChange?: (data: { issues: string[]; memoText: string; aiMode: "closed" | "assisted" }) => void;
+}) {
   const [issues, setIssues] = useState([
     "Fulfilment cost breakdown by region shows disproportionate rise in South (+26%)",
     "Last-mile carrier contracts unchanged since 2023 despite volume tier eligibility",
   ]);
   const [newIssue, setNewIssue] = useState("");
+  const [memoText, setMemoText] = useState(DEFAULT_MEMO);
   const [aiMode, setAiMode] = useState<"closed" | "assisted">("closed");
+
+  useEffect(() => {
+    onChange?.({ issues, memoText, aiMode });
+  }, [issues, memoText, aiMode, onChange]);
 
   function addIssue() {
     if (!newIssue.trim()) return;
@@ -32,9 +44,7 @@ export function ResponseTabs() {
             onClick={() => setAiMode((m) => (m === "closed" ? "assisted" : "closed"))}
             className={cn(
               "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              aiMode === "closed"
-                ? "bg-meti-slate/10 text-meti-slate"
-                : "bg-meti-mint/20 text-meti-navy"
+              aiMode === "closed" ? "bg-meti-slate/10 text-meti-slate" : "bg-meti-mint/20 text-meti-navy"
             )}
           >
             {aiMode === "closed" ? <Lock className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
@@ -51,10 +61,7 @@ export function ResponseTabs() {
 
           <TabsContent value="issue-tree" className="space-y-3">
             {issues.map((issue, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-2 rounded-lg border border-meti-slate/15 px-3.5 py-2.5"
-              >
+              <div key={i} className="flex items-start gap-2 rounded-lg border border-meti-slate/15 px-3.5 py-2.5">
                 <span className="mt-0.5 text-xs font-mono text-meti-mint">{i + 1}.</span>
                 <p className="flex-1 text-sm text-meti-navy">{issue}</p>
                 <button
@@ -81,13 +88,13 @@ export function ResponseTabs() {
 
           <TabsContent value="recommendations">
             <Textarea
+              value={memoText}
+              onChange={(e) => setMemoText(e.target.value)}
               placeholder="Write your executive summary memo here…"
-              defaultValue="Recommend a three-lever plan: (1) consolidate South-region fulfilment nodes, (2) renegotiate carrier contracts against 2026 volume tiers, (3) pilot a 12-week phased rollout before full network change to protect SLA commitments."
               className="min-h-[220px]"
             />
             <p className="mt-2 text-xs text-meti-slate">
-              Scored by Agent A09 (Case Assessment) and A10 (Communication) for structure and
-              executive clarity.
+              Scored by Agent A09 (Case Assessment) and A10 (Communication) for structure and executive clarity.
             </p>
           </TabsContent>
 
