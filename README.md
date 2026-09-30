@@ -12,7 +12,32 @@
 Unlike standard recruitment portals or static quiz forms, METI uses an **adaptive AI assessment engine**, video communication analytics, visual drawing canvases, and multi-agent evidence scoring to evaluate consulting candidates across **20 Core Enterprise Competencies (C01–C20)**.
 
 ---
+## CODE TECHNICALITY & ARCHITECTURE
 
+### High-level architecture
+```
+┌─────────────────────────────────────────────────┐
+│                   Frontend (React)                │
+│  Onboarding · Assessment · Case Workspace ·        │
+│  Dashboard · Admin · AI Copilot Drawer             │
+└───────────────────────┬───────────────────────────┘
+                         │ fetch()
+┌───────────────────────▼───────────────────────────┐
+│         Next.js API Route Handlers (10 routes)     │
+│  /orientation  /onboarding  /entitlements           │
+│  /assessment   /case        /dashboard              │
+│  /copilot      /admin                                │
+└──────────┬───────────────────────────┬─────────────┘
+           │                           │
+┌──────────▼──────────┐     ┌──────────▼──────────────┐
+│   Data Layer          │     │   AI Layer (lib/groq.ts) │
+│   (lib/db.ts)          │     │   Groq SDK → openai/     │
+│   In-memory JS store   │     │   gpt-oss-120b            │
+│   .prepare().run/get/  │     │   Strict JSON-schema      │
+│   all() interface       │     │   prompts + 10s timeout   │
+└─────────────────────────┘     └──────────────────────────┘
+```
+---
 ## 🚀 Key Features
 
 ### 1. Adaptive AI Assessment Engine
